@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aether - Anomaly Engine</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Aether</h1>
+            <p>Real-Time Market Anomaly & Strategy Engine</p>
+        </header>
+
+        <main>
+            <button id="analyze-button">Analyze Market Pulse</button>
+            
+            <div class="explanation">
+    			<p><strong>How It Works:</strong> A <strong>Docker</strong> container runs a local engine to detect anomalies. Significant events are sent to a <strong>Cerebras Cloud</strong> AI model for in-depth strategic analysis.</p>
+			</div>
+            
+            <div id="status-display"></div>
+            
+            <div id="spinner" class="spinner" style="display: none;"></div>
+            
+            <div id="results-container">
+                </div>
+        </main>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
