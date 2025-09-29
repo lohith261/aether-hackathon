@@ -42,7 +42,7 @@ async def analyze_market():
     	# Get the final analysis from Cerebras
     	strategic_analysis = get_cerebras_analysis(raw_anomaly)
     
-    r	eturn {
+    	return {
      	   "status": "Anomaly Detected",
     	    "raw_anomaly_details": raw_anomaly,
     	    "strategic_analysis": strategic_analysis
