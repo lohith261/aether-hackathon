@@ -92,26 +92,3 @@ def get_cerebras_analysis(anomaly_details: dict):
         print(f"An error occurred during the Cerebras SDK call: {e}")
         return f"[Error] Failed to get analysis from Cerebras. Details: {e}"
 
-# --- Main execution block (Unchanged) ---
-if __name__ == "__main__":
-    time_series_data = fetch_stock_data(STOCK_SYMBOL)
-    
-    if time_series_data:
-        raw_anomaly = detect_anomaly_local(time_series_data)
-        
-        print("\n--- Aether Engine Result ---")
-        if raw_anomaly:
-            print("!! RAW ANOMALY DETECTED !!")
-            raw_anomaly['symbol'] = STOCK_SYMBOL
-            raw_anomaly['timestamp'] = list(time_series_data.keys())[0]
-            pprint(raw_anomaly)
-            
-            strategic_analysis = get_cerebras_analysis(raw_anomaly)
-            
-            print("\n--- Cerebras Strategic Analysis ---")
-            print(strategic_analysis)
-            print("-----------------------------------\n")
-            
-        else:
-            print("No significant anomaly detected by the local engine.")
-        print("--------------------------\n")
