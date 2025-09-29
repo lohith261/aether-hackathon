@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const spinner = document.getElementById('spinner');
     const resultsContainer = document.getElementById('results-container');
 
-    const API_URL = 'http://127.0.0.1:8000/analyze';
+    const API_URL = 'https://aether-backend.onrender.com/analyze';
 
     analyzeButton.addEventListener('click', async () => {
         // 1. Reset the UI
