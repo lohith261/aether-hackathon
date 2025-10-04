@@ -18,6 +18,11 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers
 )
 
+@app.get("/")
+async def root():
+    """A simple endpoint to confirm the server is running."""
+    return {"status": "Aether Engine is online and ready."}
+
 # --- Define the API Endpoint ---
 @app.get("/analyze")
 async def analyze_market():
