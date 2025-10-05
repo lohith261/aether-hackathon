@@ -7,12 +7,13 @@ from cerebras.cloud.sdk import Cerebras # <-- Import the new SDK
 
 # --- Configuration ---
 load_dotenv()
-ALPHA_VANTAGE_API_KEY = os.getenv("ALPHA_VANTAGE_API_KEY")
+#ALPHA_VANTAGE_API_KEY = os.getenv("ALPHA_VANTAGE_API_KEY")
+POLYGON_API_KEY = os.getenv("POLYGON_API_KEY")
 # The SDK automatically finds the CEREBRAS_API_KEY from the .env file
 STOCK_SYMBOL = "NVDA"
 
 # --- Data Fetching (Unchanged) ---
-def fetch_stock_data(symbol: str):
+#def fetch_stock_data(symbol: str):
     url = f'https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={symbol}&interval=5min&outputsize=full&apikey={ALPHA_VANTAGE_API_KEY}'
     print(f"Fetching live market data for {symbol}...")
     try:
@@ -27,6 +28,46 @@ def fetch_stock_data(symbol: str):
         return time_series
     except requests.exceptions.RequestException as e:
         print(f"An error occurred during the Alpha Vantage API request: {e}")
+        return None
+
+def fetch_market_data(ticker: str):
+    """
+    Fetches the latest time series data for any ticker (stocks, crypto, forex) from Polygon.io.
+    Example tickers: "AAPL" for Apple, "X:BTC-USD" for Bitcoin, "C:EUR-USD" for Euro/USD.
+    """
+    # Polygon's API requires a date range. We'll get the last 2 days of 5-minute intervals.
+    yesterday = (datetime.now() - timedelta(days=2)).strftime('%Y-%m-%d')
+    today = datetime.now().strftime('%Y-%m-%d')
+
+    url = f"https://api.polygon.io/v2/aggs/ticker/{ticker}/range/5/minute/{yesterday}/{today}?adjusted=true&sort=desc&limit=100&apiKey={POLYGON_API_KEY}"
+
+    print(f"Fetching live market data for {ticker} from Polygon.io...")
+
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        data = response.json()
+
+        if data.get("resultsCount") == 0 or "results" not in data:
+            print(f"No data found for ticker {ticker}.")
+            return None
+
+        # Convert Polygon's results into the same format our anomaly detector expects
+        time_series = {}
+        for result in data["results"]:
+            # Timestamp is in milliseconds, convert to a standard string format
+            ts = datetime.fromtimestamp(result['t'] / 1000).strftime('%Y-%m-%d %H:%M:%S')
+            time_series[ts] = {
+                "1. open": str(result['o']),
+                "2. high": str(result['h']),
+                "3. low": str(result['l']),
+                "4. close": str(result['c']),
+                "5. volume": str(result['v'])
+            }
+        return time_series
+
+    except requests.exceptions.RequestException as e:
+        print(f"An error occurred during the Polygon.io API request: {e}")
         return None
 
 # --- Local Anomaly Detection (Unchanged) ---

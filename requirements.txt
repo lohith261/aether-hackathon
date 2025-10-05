@@ -3,3 +3,4 @@ python-dotenv
 pandas
 cerebras_cloud_sdk
 fastapi[all]
+polygon-api-client

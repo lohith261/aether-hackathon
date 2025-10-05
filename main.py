@@ -3,11 +3,13 @@ from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
 # Import the functions from your other file
-from data_fetcher import fetch_stock_data, detect_anomaly_local, get_cerebras_analysis, STOCK_SYMBOL
+from data_fetcher import fetch_market_data, detect_anomaly_local, get_cerebras_analysis
 from mock_data import MOCK_TIME_SERIES_DATA
 
 # Create the FastAPI app
 app = FastAPI()
+
+MARKET_SYMBOL = "X:BTC-USD"
 
 # --- CORS Middleware ---
 # This allows our future frontend (running on a different address) to talk to this backend.
@@ -32,7 +34,8 @@ async def analyze_market():
     	This endpoint triggers the full Aether analysis workflow.
     	"""
     	#time_series_data = fetch_stock_data(STOCK_SYMBOL)
-    	time_series_data = MOCK_TIME_SERIES_DATA.get("Time Series (5min)")
+    	#time_series_data = MOCK_TIME_SERIES_DATA.get("Time Series (5min)")
+    	time_series_data = fetch_market_data(MARKET_SYMBOL)
     
     	if not time_series_data:
     	    return {"error": "Could not fetch market data."}
