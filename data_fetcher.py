@@ -2,47 +2,25 @@ import os
 import requests
 import pandas as pd
 from dotenv import load_dotenv
+from datetime import datetime, timedelta
 from pprint import pprint
-from cerebras.cloud.sdk import Cerebras # <-- Import the new SDK
+from cerebras.cloud.sdk import Cerebras
 
-# --- Configuration ---
+# Load environment variables from the .env file
 load_dotenv()
-#ALPHA_VANTAGE_API_KEY = os.getenv("ALPHA_VANTAGE_API_KEY")
 POLYGON_API_KEY = os.getenv("POLYGON_API_KEY")
-# The SDK automatically finds the CEREBRAS_API_KEY from the .env file
-STOCK_SYMBOL = "NVDA"
-
-# --- Data Fetching (Unchanged) ---
-#def fetch_stock_data(symbol: str):
-    url = f'https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={symbol}&interval=5min&outputsize=full&apikey={ALPHA_VANTAGE_API_KEY}'
-    print(f"Fetching live market data for {symbol}...")
-    try:
-        response = requests.get(url)
-        response.raise_for_status()
-        data = response.json()
-        time_series = data.get("Time Series (5min)")
-        if not time_series:
-            print("Error: Could not find time series data.")
-            pprint(data)
-            return None
-        return time_series
-    except requests.exceptions.RequestException as e:
-        print(f"An error occurred during the Alpha Vantage API request: {e}")
-        return None
 
 def fetch_market_data(ticker: str):
     """
-    Fetches the latest time series data for any ticker (stocks, crypto, forex) from Polygon.io.
-    Example tickers: "AAPL" for Apple, "X:BTC-USD" for Bitcoin, "C:EUR-USD" for Euro/USD.
+    Fetches the latest time series data for any ticker from Polygon.io.
     """
-    # Polygon's API requires a date range. We'll get the last 2 days of 5-minute intervals.
     yesterday = (datetime.now() - timedelta(days=2)).strftime('%Y-%m-%d')
     today = datetime.now().strftime('%Y-%m-%d')
-
+    
     url = f"https://api.polygon.io/v2/aggs/ticker/{ticker}/range/5/minute/{yesterday}/{today}?adjusted=true&sort=desc&limit=100&apiKey={POLYGON_API_KEY}"
-
+    
     print(f"Fetching live market data for {ticker} from Polygon.io...")
-
+    
     try:
         response = requests.get(url)
         response.raise_for_status()
@@ -52,10 +30,9 @@ def fetch_market_data(ticker: str):
             print(f"No data found for ticker {ticker}.")
             return None
 
-        # Convert Polygon's results into the same format our anomaly detector expects
+        # Convert Polygon's results into the format our anomaly detector expects
         time_series = {}
         for result in data["results"]:
-            # Timestamp is in milliseconds, convert to a standard string format
             ts = datetime.fromtimestamp(result['t'] / 1000).strftime('%Y-%m-%d %H:%M:%S')
             time_series[ts] = {
                 "1. open": str(result['o']),
@@ -65,13 +42,15 @@ def fetch_market_data(ticker: str):
                 "5. volume": str(result['v'])
             }
         return time_series
-
+        
     except requests.exceptions.RequestException as e:
         print(f"An error occurred during the Polygon.io API request: {e}")
         return None
 
-# --- Local Anomaly Detection (Unchanged) ---
 def detect_anomaly_local(time_series: dict):
+    """
+    Analyzes time series data locally using Bollinger Bands.
+    """
     if not time_series: return None
     df = pd.DataFrame.from_dict(time_series, orient='index', dtype=float)
     df.rename(columns={'1. open': 'open', '2. high': 'high', '3. low': 'low', '4. close': 'close', '5. volume': 'volume'}, inplace=True)
@@ -92,16 +71,14 @@ def detect_anomaly_local(time_series: dict):
     
     return None
 
-# --- REWRITTEN: Real Cerebras API Call using the SDK ---
 def get_cerebras_analysis(anomaly_details: dict):
     """
     Calls the Cerebras Inference API using the official SDK to get a strategic analysis.
     """
     try:
         print("\n[Cerebras SDK]: Initializing client...")
-        client = Cerebras() # The SDK automatically finds the API key from your environment
+        client = Cerebras()
         
-        # 1. Craft the messages payload
         system_prompt = (
             "You are 'Aether', an expert AI financial strategist. You will receive a financial anomaly report. "
             "Your mission is to provide a concise, professional analysis in three parts: "
@@ -118,13 +95,11 @@ def get_cerebras_analysis(anomaly_details: dict):
 
         print("[Cerebras SDK]: Sending anomaly data to Cerebras Cloud for strategic analysis...")
         
-        # 2. Make the API call
         chat_completion = client.chat.completions.create(
             messages=messages,
-            model="llama-4-scout-17b-16e-instruct", # Use a model name from the SDK docs
+            model="llama-4-scout-17b-16e-instruct",
         )
 
-        # 3. Extract the response
         analysis = chat_completion.choices[0].message.content
         print("[Cerebras SDK]: Analysis received.")
         return analysis.strip()
@@ -132,4 +107,3 @@ def get_cerebras_analysis(anomaly_details: dict):
     except Exception as e:
         print(f"An error occurred during the Cerebras SDK call: {e}")
         return f"[Error] Failed to get analysis from Cerebras. Details: {e}"
-
