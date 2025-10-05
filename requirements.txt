@@ -1,6 +1,6 @@
-requests
+fastapi[all]
 python-dotenv
 pandas
+requests
 cerebras_cloud_sdk
-fastapi[all]
 polygon-api-client
