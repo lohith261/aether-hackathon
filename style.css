@@ -98,3 +98,22 @@ header p {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+.status-card {
+    background-color: #1e1e1e;
+    border-left: 5px solid #555; /* A neutral grey color */
+    border-radius: 5px;
+    padding: 20px;
+    margin-top: 20px;
+    text-align: left;
+}
+
+.status-card h2 {
+    margin-top: 0;
+    color: #ccc;
+}
+
+.status-card p {
+    margin: 10px 0;
+    font-size: 1.1rem;
+}

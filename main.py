@@ -40,7 +40,18 @@ async def analyze_market():
     raw_anomaly = detect_anomaly_local(time_series_data)
     
     if not raw_anomaly:
-        return {"status": "No significant anomaly detected in the latest data."}
+    # Get the latest data point from the time series
+    latest_timestamp = list(time_series_data.keys())[0]
+    latest_data = time_series_data[latest_timestamp]
+
+    return {
+        "status": "No significant anomaly detected.",
+        "latest_data": {
+            "symbol": MARKET_SYMBOL,
+            "timestamp": latest_timestamp,
+            "close_price": latest_data.get("4. close")
+        }
+    }
     
     # 3. If an anomaly is found, get the AI analysis
     raw_anomaly['symbol'] = MARKET_SYMBOL
